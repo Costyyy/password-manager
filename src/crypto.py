@@ -1,10 +1,6 @@
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305 as chacha
 from argon2.low_level import hash_secret_raw, Type
-import sqlite3
 import os
-
-
-
 
 def derive_key(master_password, salt):
     return hash_secret_raw(
