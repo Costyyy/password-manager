@@ -10,3 +10,9 @@ python cli.py delete website
 # TO DO:
 - add possibility to have multiple accounts per website
 - add notes storage
+- add network sync
+- UI
+
+# Possible TO DOs
+- phone app
+- browser extension
