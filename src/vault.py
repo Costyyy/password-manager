@@ -13,14 +13,13 @@ class Vault:
         if not salt:
             salt = os.urandom(16)
             self.db.set_meta("salt", salt)
-            self.key = crypto.derive_key(master_password, salt)
-        else:
-            self.key = crypto.derive_key(master_password, salt)
-            entries = [(data[0], data[3]) for data in self.db.get_all_entries()]
-            root = self.db.get_meta("root")
-            if root:
-                if not merkle.verify(entries, root):
-                    raise ValueError("Mismatch")
+       
+        entries = [(data[0], data[3]) for data in self.db.get_all_entries()]
+        root = self.db.get_meta("root")
+        if root:
+            if not merkle.verify(entries, root):
+                raise ValueError("Mismatch")
+        self.key = crypto.derive_key(master_password, salt)
 
     def add(self, site, username, password):
         # TO DO: add possiblity to have multiple accounts per website
@@ -37,6 +36,8 @@ class Vault:
     def get(self, site):
 
         data = self.db.get_entry_by_site(site)
+        if not data:
+            raise ValueError(f"No entry found for {site}")
 
         try:
             password = crypto.decrypt(self.key, data[3], data[4])
@@ -51,7 +52,7 @@ class Vault:
             return
         
         ciphertext, nonce = crypto.encrypt(self.key, password)
-        self.db.unpdate_entry(site, ciphertext, nonce)
+        self.db.update_entry(site, ciphertext, nonce)
 
         self._update_merkle_root()
 
@@ -68,4 +69,5 @@ class Vault:
     
     def _update_merkle_root(self):
         entries = [(data[0], data[3]) for data in self.db.get_all_entries()]
-        merkle.compute_root(entries)
+        root = merkle.compute_root(entries)
+        self.db.set_meta("root", root)
