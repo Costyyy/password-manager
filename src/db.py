@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 DB_PATH = "vault.db"
 
 class Database:
-    def __init__(self, path = None):
+    def __init__(self):
         self.db = self.get_connection()
 
     def get_connection(self):
@@ -30,7 +30,9 @@ class Database:
     def add_entry(self, site, username, ciphertext, nonce):
         entry_id = str(uuid.uuid4())
         updated_at = datetime.now(timezone.utc).isoformat()
-        self.db.execute("INSERT INTO entries (id, site, username, ciphertext, nonce, update_at) VALUES (?, ?, ?, ?, ?, ?)", (entry_id, site, username, ciphertext, nonce, updated_at))
+        self.db.execute("INSERT INTO entries (id, site, username, ciphertext, nonce, updated_at) VALUES (?, ?, ?, ?, ?, ?)", (entry_id, site, username, ciphertext, nonce, updated_at))
+
+        self.db.commit()
 
         return entry_id
     
@@ -52,7 +54,7 @@ class Database:
         self.db.execute("DELETE FROM entries WHERE site = ?", (site, ))
 
     def get_meta(self, key):
-        cursor = self.db.execute("SELECT value FROM vault_meta")
+        cursor = self.db.execute("SELECT value FROM vault_meta WHERE key = ?", (key,))
         row = cursor.fetchone()
         return row[0] if row else None
     
